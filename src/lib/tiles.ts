@@ -13,9 +13,9 @@ export const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
 export const TILE_ATTRIBUTION = '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>'
 export const TILE_CACHE = 'runroute-tiles'
 export const MIN_ZOOM = 12
-export const MAX_ZOOM = 17
+export const MAX_ZOOM = 16
 /** Corridor half-width around the route, metres. */
-const CORRIDOR = 250
+const CORRIDOR = 150
 /** Average OSM PNG tile size, for estimates. */
 export const AVG_TILE_BYTES = 18_000
 /** OSM tile usage policy: at most 2 parallel downloads. */

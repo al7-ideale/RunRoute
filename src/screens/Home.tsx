@@ -155,7 +155,7 @@ export function Home({ route, importError, busy, onImport, onImportPredefined, o
               <button
                 type="button"
                 disabled={busy}
-                onClick={() => onImportPredefined('/routes/18th%20Kathmandu%20Marathon%20Full%20Marathon.gpx', 'Full Marathon')}
+                onClick={() => onImportPredefined('/routes/full-marathon.gpx', 'Full Marathon')}
                 className="flex items-center justify-between w-full p-4 rounded-2xl bg-accent text-ink font-bold transition active:scale-[0.98] disabled:opacity-50 shadow-lg"
               >
                 <span className="text-[1.125rem]">Full Marathon</span>
@@ -165,7 +165,7 @@ export function Home({ route, importError, busy, onImport, onImportPredefined, o
               <button
                 type="button"
                 disabled={busy}
-                onClick={() => onImportPredefined('/routes/18th%20Kathmandu%20Marathon%20Half%20Marathon.gpx', 'Half Marathon')}
+                onClick={() => onImportPredefined('/routes/half-marathon.gpx', 'Half Marathon')}
                 className="flex items-center justify-between w-full p-4 rounded-2xl bg-surface border border-line text-fg font-semibold transition active:scale-[0.98] disabled:opacity-50"
               >
                 <span className="text-[1.125rem]">Half Marathon</span>
@@ -175,7 +175,7 @@ export function Home({ route, importError, busy, onImport, onImportPredefined, o
               <button
                 type="button"
                 disabled={busy}
-                onClick={() => onImportPredefined('/routes/10%20KM%2018th%20Kathmandu%20Marathon.gpx', '10 KM')}
+                onClick={() => onImportPredefined('/routes/10km.gpx', '10 KM')}
                 className="flex items-center justify-between w-full p-4 rounded-2xl bg-surface border border-line text-fg font-semibold transition active:scale-[0.98] disabled:opacity-50"
               >
                 <span className="text-[1.125rem]">10 KM Race</span>

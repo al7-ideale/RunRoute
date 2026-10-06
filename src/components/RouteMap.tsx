@@ -5,7 +5,7 @@
 import { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import type { LatLng } from '../lib/geo'
+import { bearing, type LatLng } from '../lib/geo'
 import type { GpsFix } from '../lib/gps'
 import { routeUntil, type RouteIndex } from '../lib/route'
 import { TILE_ATTRIBUTION, TILE_URL } from '../lib/tiles'
@@ -87,6 +87,31 @@ export function RouteMap({
     const line = index.route.points.map(ll)
     L.polyline(line, { color: CASING, weight: 10, opacity: 0.85, interactive: false, lineJoin: 'round' }).addTo(m)
     L.polyline(line, { color: ROUTE, weight: 5, opacity: 1, interactive: false, lineJoin: 'round' }).addTo(m)
+
+    // Direction arrows every 2 km
+    let nextD = 2000
+    for (let i = 0; i < index.cum.length - 1; i++) {
+      while (nextD >= index.cum[i] && nextD < index.cum[i + 1]) {
+        const d0 = index.cum[i]
+        const d1 = index.cum[i + 1]
+        const t = (nextD - d0) / Math.max(1, d1 - d0)
+        const p0 = index.route.points[i]
+        const p1 = index.route.points[i + 1]
+        const lat = p0.lat + t * (p1.lat - p0.lat)
+        const lng = p0.lng + t * (p1.lng - p0.lng)
+        const b = bearing(p0, p1)
+        
+        const arrowSvg = `<svg viewBox="0 0 24 24" style="transform: rotate(${b}deg); width: 20px; height: 20px;" fill="none" stroke="#0a0b0d" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 14 12 10 8 14"/></svg>`
+        
+        L.marker([lat, lng], {
+          icon: L.divIcon({ html: arrowSvg, className: '', iconSize: [20, 20], iconAnchor: [10, 10] }),
+          interactive: false,
+          keyboard: false,
+        }).addTo(m)
+        
+        nextD += 2000
+      }
+    }
     const done = L.polyline([], { color: DONE, weight: 5, opacity: 1, interactive: false, lineJoin: 'round' }).addTo(m)
 
     L.marker(ll(index.route.start), {

@@ -32,7 +32,7 @@ export default defineConfig({
       },
       workbox: {
         // App shell: everything the race needs is precached at install time.
-        globPatterns: ['**/*.{js,css,html,svg,png,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,webmanifest,gpx}'],
         navigateFallback: 'index.html',
         cleanupOutdatedCaches: true,
         clientsClaim: true,

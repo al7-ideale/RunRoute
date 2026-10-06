@@ -101,7 +101,7 @@ export function RouteMap({
         const lng = p0.lng + t * (p1.lng - p0.lng)
         const b = bearing(p0, p1)
         
-        const arrowSvg = `<svg viewBox="0 0 24 24" style="transform: rotate(${b}deg); width: 20px; height: 20px;" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 14 12 10 8 14"/></svg>`
+        const arrowSvg = `<svg viewBox="0 0 24 24" style="transform: rotate(${b}deg); width: 20px; height: 20px;" fill="none" stroke="#ff3b30" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 14 12 10 8 14"/></svg>`
         
         L.marker([lat, lng], {
           icon: L.divIcon({ html: arrowSvg, className: '', iconSize: [20, 20], iconAnchor: [10, 10] }),

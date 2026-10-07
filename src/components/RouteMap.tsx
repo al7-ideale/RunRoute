@@ -174,13 +174,15 @@ export function RouteMap({
         iconEl.style.setProperty('--hdg', `${heading}deg`)
       }
     }
-    if (mode === 'race' && follow) {
+    if (mode === 'race') {
       setRotation(-heading)
-      if (!placed.current) {
-        m.setView(pos, RACE_ZOOM, { animate: false })
-        placed.current = true
-      } else {
-        m.panTo(pos, { animate: true, duration: 0.6, easeLinearity: 0.5 })
+      if (follow) {
+        if (!placed.current) {
+          m.setView(pos, RACE_ZOOM, { animate: false })
+          placed.current = true
+        } else {
+          m.panTo(pos, { animate: true, duration: 0.6, easeLinearity: 0.5 })
+        }
       }
     } else {
       setRotation(0)

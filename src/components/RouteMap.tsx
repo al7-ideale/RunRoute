@@ -17,7 +17,7 @@ if (!(L.Draggable.prototype as any)._patchedForRotation) {
     const rot = (window as any).__mapRotation || 0;
     if (rot) {
       const offset = this._newPos.subtract(this._startPos);
-      const rad = -rot * Math.PI / 180;
+      const rad = rot * Math.PI / 180;
       const cos = Math.cos(rad);
       const sin = Math.sin(rad);
       const rx = offset.x * cos - offset.y * sin;

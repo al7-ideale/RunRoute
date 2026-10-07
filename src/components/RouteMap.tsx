@@ -10,6 +10,25 @@ import type { GpsFix } from '../lib/gps'
 import { routeUntil, type RouteIndex } from '../lib/route'
 import { TILE_ATTRIBUTION, TILE_URL } from '../lib/tiles'
 
+// Patch Leaflet's drag handler to support CSS-rotated map containers
+if (!(L.Draggable.prototype as any)._patchedForRotation) {
+  const originalUpdatePosition = L.Draggable.prototype._updatePosition;
+  L.Draggable.prototype._updatePosition = function () {
+    const rot = (window as any).__mapRotation || 0;
+    if (rot) {
+      const offset = this._newPos.subtract(this._startPos);
+      const rad = -rot * Math.PI / 180;
+      const cos = Math.cos(rad);
+      const sin = Math.sin(rad);
+      const rx = offset.x * cos - offset.y * sin;
+      const ry = offset.x * sin + offset.y * cos;
+      this._newPos = this._startPos.add(new L.Point(rx, ry));
+    }
+    originalUpdatePosition.call(this);
+  };
+  (L.Draggable.prototype as any)._patchedForRotation = true;
+}
+
 const ROUTE = '#c8ff2e'
 const DONE = '#6b7079'
 const CASING = '#0a0b0d'
@@ -61,6 +80,11 @@ export function RouteMap({
   cb.current = { onUserPan, onTileError }
   const placed = useRef(false)
   const [rotation, setRotation] = useState(0)
+
+  // Sync rotation for the Draggable patch
+  useEffect(() => {
+    (window as any).__mapRotation = rotation
+  }, [rotation])
 
   // Create map + static route layers.
   useEffect(() => {

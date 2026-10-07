@@ -2,7 +2,7 @@
  * Map rendering (Leaflet + OSM). Imperative Leaflet wrapped in a React
  * component; the route and position layers work without any network.
  */
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { bearing, type LatLng } from '../lib/geo'
@@ -60,6 +60,7 @@ export function RouteMap({
   const cb = useRef({ onUserPan, onTileError })
   cb.current = { onUserPan, onTileError }
   const placed = useRef(false)
+  const [rotation, setRotation] = useState(0)
 
   // Create map + static route layers.
   useEffect(() => {
@@ -76,7 +77,7 @@ export function RouteMap({
 
     L.tileLayer(TILE_URL, {
       maxZoom: 19,
-      maxNativeZoom: 19,
+      maxNativeZoom: 16,
       attribution: TILE_ATTRIBUTION,
       className: 'rr-tiles',
       crossOrigin: true,
@@ -164,18 +165,25 @@ export function RouteMap({
       ly.me.addTo(m)
     }
     const iconEl = ly.me.getElement()
+    let heading = 0;
     if (iconEl) {
       const moving = fix.heading !== null && (fix.speed ?? 0) > 0.5
       iconEl.classList.toggle('has-heading', moving)
-      if (moving) iconEl.style.setProperty('--hdg', `${fix.heading}deg`)
+      if (moving) {
+        heading = fix.heading!
+        iconEl.style.setProperty('--hdg', `${heading}deg`)
+      }
     }
     if (mode === 'race' && follow) {
+      setRotation(-heading)
       if (!placed.current) {
         m.setView(pos, RACE_ZOOM, { animate: false })
         placed.current = true
       } else {
         m.panTo(pos, { animate: true, duration: 0.6, easeLinearity: 0.5 })
       }
+    } else {
+      setRotation(0)
     }
   }, [fix, follow, mode])
 
@@ -207,5 +215,21 @@ export function RouteMap({
     ly.link.setLatLngs(offRoute && fix && nearest ? [[fix.lat, fix.lng], ll(nearest)] : [])
   }, [offRoute, fix, nearest])
 
-  return <div ref={el} className={className} />
+  return (
+    <div className={`overflow-hidden pointer-events-none ${className || ''}`}>
+      <div
+        ref={el}
+        style={{
+          width: mode === 'race' ? '150vmax' : '100%',
+          height: mode === 'race' ? '150vmax' : '100%',
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+          pointerEvents: 'auto',
+          transition: 'transform 0.5s ease-out',
+        }}
+      />
+    </div>
+  )
 }

@@ -98,6 +98,31 @@ export function RouteMap({
       inertia: true,
       tapTolerance: 20,
     })
+
+    // Patch TouchZoom/click coordinates for the rotated map container
+    const originalMouseEventToContainerPoint = m.mouseEventToContainerPoint.bind(m)
+    m.mouseEventToContainerPoint = function(e: any) {
+      const rot = (window as any).__mapRotation || 0
+      if (!rot) return originalMouseEventToContainerPoint(e)
+      
+      const cx = window.innerWidth / 2
+      const cy = window.innerHeight / 2
+      const clientX = e.clientX !== undefined ? e.clientX : cx
+      const clientY = e.clientY !== undefined ? e.clientY : cy
+
+      const dx = clientX - cx
+      const dy = clientY - cy
+      
+      const rad = rot * Math.PI / 180
+      const cos = Math.cos(rad)
+      const sin = Math.sin(rad)
+      
+      const rx = dx * cos - dy * sin
+      const ry = dx * sin + dy * cos
+      
+      const mapCenter = m.getSize().divideBy(2)
+      return new L.Point(mapCenter.x + rx, mapCenter.y + ry)
+    }
     m.attributionControl.setPrefix(false)
 
     L.tileLayer(TILE_URL, {

@@ -12,17 +12,18 @@ import { TILE_ATTRIBUTION, TILE_URL } from '../lib/tiles'
 
 // Patch Leaflet's drag handler to support CSS-rotated map containers
 if (!(L.Draggable.prototype as any)._patchedForRotation) {
-  const originalUpdatePosition = L.Draggable.prototype._updatePosition;
-  L.Draggable.prototype._updatePosition = function () {
+  const originalUpdatePosition = (L.Draggable.prototype as any)._updatePosition;
+  (L.Draggable.prototype as any)._updatePosition = function () {
     const rot = (window as any).__mapRotation || 0;
     if (rot) {
-      const offset = this._newPos.subtract(this._startPos);
+      const self = this as any;
+      const offset = self._newPos.subtract(self._startPos);
       const rad = rot * Math.PI / 180;
       const cos = Math.cos(rad);
       const sin = Math.sin(rad);
       const rx = offset.x * cos - offset.y * sin;
       const ry = offset.x * sin + offset.y * cos;
-      this._newPos = this._startPos.add(new L.Point(rx, ry));
+      self._newPos = self._startPos.add(new L.Point(rx, ry));
     }
     originalUpdatePosition.call(this);
   };

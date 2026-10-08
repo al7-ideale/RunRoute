@@ -2,33 +2,14 @@
  * Map rendering (Leaflet + OSM). Imperative Leaflet wrapped in a React
  * component; the route and position layers work without any network.
  */
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import 'leaflet-rotate'
 import { bearing, type LatLng } from '../lib/geo'
 import type { GpsFix } from '../lib/gps'
 import { routeUntil, type RouteIndex } from '../lib/route'
 import { TILE_ATTRIBUTION, TILE_URL } from '../lib/tiles'
-
-// Patch Leaflet's drag handler to support CSS-rotated map containers
-if (!(L.Draggable.prototype as any)._patchedForRotation) {
-  const originalUpdatePosition = (L.Draggable.prototype as any)._updatePosition;
-  (L.Draggable.prototype as any)._updatePosition = function () {
-    const rot = (window as any).__mapRotation || 0;
-    if (rot) {
-      const self = this as any;
-      const offset = self._newPos.subtract(self._startPos);
-      const rad = rot * Math.PI / 180;
-      const cos = Math.cos(rad);
-      const sin = Math.sin(rad);
-      const rx = offset.x * cos - offset.y * sin;
-      const ry = offset.x * sin + offset.y * cos;
-      self._newPos = self._startPos.add(new L.Point(rx, ry));
-    }
-    originalUpdatePosition.call(this);
-  };
-  (L.Draggable.prototype as any)._patchedForRotation = true;
-}
 
 const ROUTE = '#c8ff2e'
 const DONE = '#6b7079'
@@ -80,12 +61,6 @@ export function RouteMap({
   const cb = useRef({ onUserPan, onTileError })
   cb.current = { onUserPan, onTileError }
   const placed = useRef(false)
-  const [rotation, setRotation] = useState(0)
-
-  // Sync rotation for the Draggable patch
-  useEffect(() => {
-    (window as any).__mapRotation = rotation
-  }, [rotation])
 
   // Create map + static route layers.
   useEffect(() => {
@@ -97,37 +72,18 @@ export function RouteMap({
       zoomSnap: 0.25,
       inertia: true,
       tapTolerance: 20,
-    })
-
-    // Patch TouchZoom/click coordinates for the rotated map container
-    const originalMouseEventToContainerPoint = m.mouseEventToContainerPoint.bind(m)
-    m.mouseEventToContainerPoint = function(e: any) {
-      const rot = (window as any).__mapRotation || 0
-      if (!rot) return originalMouseEventToContainerPoint(e)
-      
-      const cx = window.innerWidth / 2
-      const cy = window.innerHeight / 2
-      const clientX = e.clientX !== undefined ? e.clientX : cx
-      const clientY = e.clientY !== undefined ? e.clientY : cy
-
-      const dx = clientX - cx
-      const dy = clientY - cy
-      
-      const rad = rot * Math.PI / 180
-      const cos = Math.cos(rad)
-      const sin = Math.sin(rad)
-      
-      const rx = dx * cos - dy * sin
-      const ry = dx * sin + dy * cos
-      
-      const mapCenter = m.getSize().divideBy(2)
-      return new L.Point(mapCenter.x + rx, mapCenter.y + ry)
-    }
+      // leaflet-rotate options
+      rotate: true,
+      bearing: 0,
+      touchRotate: false,    // don't let user rotate with two-finger gesture
+      shiftKeyRotate: false, // don't let user rotate with shift+scroll
+      rotateControl: false,  // hide the compass control
+    } as any)
     m.attributionControl.setPrefix(false)
 
     L.tileLayer(TILE_URL, {
       maxZoom: 19,
-      maxNativeZoom: 16,
+      maxNativeZoom: 18,
       attribution: TILE_ATTRIBUTION,
       className: 'rr-tiles',
       crossOrigin: true,
@@ -225,7 +181,8 @@ export function RouteMap({
       }
     }
     if (mode === 'race') {
-      setRotation(-heading)
+      // Use leaflet-rotate's native setBearing for correct coordinate transforms
+      ;(m as any).setBearing(heading)
       if (follow) {
         if (!placed.current) {
           m.setView(pos, RACE_ZOOM, { animate: false })
@@ -235,7 +192,7 @@ export function RouteMap({
         }
       }
     } else {
-      setRotation(0)
+      ;(m as any).setBearing(0)
     }
   }, [fix, follow, mode])
 
@@ -268,20 +225,9 @@ export function RouteMap({
   }, [offRoute, fix, nearest])
 
   return (
-    <div className={`overflow-hidden pointer-events-none ${className || ''}`}>
-      <div
-        ref={el}
-        style={{
-          width: mode === 'race' ? '150vmax' : '100%',
-          height: mode === 'race' ? '150vmax' : '100%',
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
-          pointerEvents: 'auto',
-          transition: 'transform 0.5s ease-out',
-        }}
-      />
-    </div>
+    <div
+      ref={el}
+      className={className}
+    />
   )
 }

@@ -179,15 +179,15 @@ export function RouteMap({
     if (iconEl) {
       iconEl.classList.toggle('has-heading', moving)
       if (moving) {
-        // Compensate --hdg for map bearing so the arrow points correctly on screen
-        const mapBearing = (m as any).getBearing?.() ?? 0
-        iconEl.style.setProperty('--hdg', `${heading - mapBearing}deg`)
+        // The marker DOM element rotates with the map pane, so its Y-axis always points North.
+        // We just rotate the arrow by the runner's heading relative to North.
+        iconEl.style.setProperty('--hdg', `${heading}deg`)
       }
     }
 
     if (mode === 'race' && follow) {
-      // Use leaflet-rotate's native setBearing for correct coordinate transforms
-      ;(m as any).setBearing(heading)
+      // Rotate map counter-clockwise by heading so the runner's direction points UP
+      ;(m as any).setBearing(-heading)
       if (!placed.current) {
         m.setView(pos, RACE_ZOOM, { animate: false })
         placed.current = true

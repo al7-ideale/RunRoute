@@ -170,16 +170,21 @@ export function RouteMap({
       ly.acc.addTo(m)
       ly.me.addTo(m)
     }
+
+    // Determine heading from GPS fix (independent of DOM readiness)
+    const moving = fix.heading !== null && (fix.speed ?? 0) > 0.5
+    const heading = moving ? fix.heading! : 0
+
     const iconEl = ly.me.getElement()
-    let heading = 0;
     if (iconEl) {
-      const moving = fix.heading !== null && (fix.speed ?? 0) > 0.5
       iconEl.classList.toggle('has-heading', moving)
       if (moving) {
-        heading = fix.heading!
-        iconEl.style.setProperty('--hdg', `${heading}deg`)
+        // Compensate --hdg for map bearing so the arrow points correctly on screen
+        const mapBearing = (m as any).getBearing?.() ?? 0
+        iconEl.style.setProperty('--hdg', `${heading - mapBearing}deg`)
       }
     }
+
     if (mode === 'race' && follow) {
       // Use leaflet-rotate's native setBearing for correct coordinate transforms
       ;(m as any).setBearing(heading)

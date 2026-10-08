@@ -180,16 +180,14 @@ export function RouteMap({
         iconEl.style.setProperty('--hdg', `${heading}deg`)
       }
     }
-    if (mode === 'race') {
+    if (mode === 'race' && follow) {
       // Use leaflet-rotate's native setBearing for correct coordinate transforms
       ;(m as any).setBearing(heading)
-      if (follow) {
-        if (!placed.current) {
-          m.setView(pos, RACE_ZOOM, { animate: false })
-          placed.current = true
-        } else {
-          m.panTo(pos, { animate: true, duration: 0.6, easeLinearity: 0.5 })
-        }
+      if (!placed.current) {
+        m.setView(pos, RACE_ZOOM, { animate: false })
+        placed.current = true
+      } else {
+        m.panTo(pos, { animate: true, duration: 0.6, easeLinearity: 0.5 })
       }
     } else {
       ;(m as any).setBearing(0)

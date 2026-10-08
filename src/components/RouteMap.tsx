@@ -158,6 +158,10 @@ export function RouteMap({
     }
   }, [index])
 
+  const targetBearing = useRef(0)
+  const currentBearing = useRef(0)
+  const animFrame = useRef(0)
+
   // Position marker + accuracy halo + follow.
   useEffect(() => {
     const m = map.current
@@ -185,19 +189,48 @@ export function RouteMap({
       }
     }
 
+    targetBearing.current = mode === 'race' && follow ? -heading : 0
+
+    if (!animFrame.current) {
+      const loop = () => {
+        if (!map.current) {
+          animFrame.current = 0
+          return
+        }
+        let diff = targetBearing.current - currentBearing.current
+        while (diff < -180) diff += 360
+        while (diff > 180) diff -= 360
+
+        if (Math.abs(diff) < 0.2) {
+          currentBearing.current = targetBearing.current
+          ;(map.current as any).setBearing(currentBearing.current)
+          animFrame.current = 0
+          return
+        }
+
+        currentBearing.current += diff * 0.1
+        ;(map.current as any).setBearing(currentBearing.current)
+        animFrame.current = requestAnimationFrame(loop)
+      }
+      animFrame.current = requestAnimationFrame(loop)
+    }
+
     if (mode === 'race' && follow) {
-      // Rotate map counter-clockwise by heading so the runner's direction points UP
-      ;(m as any).setBearing(-heading)
       if (!placed.current) {
         m.setView(pos, RACE_ZOOM, { animate: false })
         placed.current = true
       } else {
         m.panTo(pos, { animate: true, duration: 0.6, easeLinearity: 0.5 })
       }
-    } else {
-      ;(m as any).setBearing(0)
     }
   }, [fix, follow, mode])
+
+  // Cleanup animation frame on unmount
+  useEffect(() => {
+    return () => {
+      if (animFrame.current) cancelAnimationFrame(animFrame.current)
+    }
+  }, [])
 
   // Explicit re-centre.
   useEffect(() => {

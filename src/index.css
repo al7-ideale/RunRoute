@@ -142,4 +142,5 @@ dialog.sheet::backdrop {
   border-bottom: 16px solid #1a73ff;
   transform: translate(-50%, -50%) rotate(var(--hdg, 0deg)) translateY(-17px);
   filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.5));
+  transition: transform 0.5s ease-out;
 }

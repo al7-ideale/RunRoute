@@ -72,6 +72,7 @@ export function RouteMap({
       zoomSnap: 0.25,
       inertia: true,
       tapTolerance: 20,
+      zoomAnimation: false, // prevents route layer jumping when map is rotated
       // leaflet-rotate options
       rotate: true,
       bearing: 0,
@@ -179,7 +180,12 @@ export function RouteMap({
     const moving = fix.heading !== null && (fix.speed ?? 0) > 0.5
     const heading = moving ? fix.heading! : 0
 
-    targetBearing.current = mode === 'race' && follow ? -heading : 0
+    if (mode === 'race' && follow) {
+      targetBearing.current = -heading
+    } else if (mode === 'preview') {
+      targetBearing.current = 0
+    }
+    // If mode === 'race' && !follow, leave targetBearing unchanged so the map stays at the rotation where the user started scrolling.
 
     if (!animFrame.current) {
       const loop = () => {

@@ -179,16 +179,6 @@ export function RouteMap({
     const moving = fix.heading !== null && (fix.speed ?? 0) > 0.5
     const heading = moving ? fix.heading! : 0
 
-    const iconEl = ly.me.getElement()
-    if (iconEl) {
-      iconEl.classList.toggle('has-heading', moving)
-      if (moving) {
-        // The marker DOM element rotates with the map pane, so its Y-axis always points North.
-        // We just rotate the arrow by the runner's heading relative to North.
-        iconEl.style.setProperty('--hdg', `${heading}deg`)
-      }
-    }
-
     targetBearing.current = mode === 'race' && follow ? -heading : 0
 
     if (!animFrame.current) {
